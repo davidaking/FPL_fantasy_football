@@ -1,0 +1,337 @@
+---
+title: "Fantasy League Dashboard"
+output:
+  flexdashboard::flex_dashboard: 
+    orientation: rows
+    theme: flatly
+    vertical_layout: fill
+
+params:
+  fixed_col: 2
+  sort_col: 6
+---
+
+
+
+```{r echo = FALSE ,message = FALSE, warning = FALSE}
+
+library(knitr)
+library(tidyverse)
+library(RSQLite)
+library(flexdashboard)
+library(tidyverse)
+library(DT)
+library( wordcloud)
+library(ggplot2)
+library(plotly)
+
+
+# Import data
+# Set up directories
+current_user <- Sys.info()[["user"]]
+dir_file <- paste0("c:\\users\\",current_user,"\\project-directories.csv")
+project_dir = read.csv(dir_file)
+
+project_name <- "FPL_fantasy_football"
+row_ind <- project_dir$Project == project_name
+project_dir <- project_dir[row_ind,,drop=F]
+
+
+for (i in 1:nrow(project_dir)){
+  
+  dir_str <- paste(project_dir[i,],collapse="/")
+  sub_dir_str <- tolower(project_dir[i,"directory"])
+  text_str <- paste0(sub_dir_str,"_dir <- ","'",paste0("c:/users/",current_user,"/",dir_str,"/","'"))  
+  eval(parse(text=text_str))
+  
+  
+}
+
+
+db <- dbConnect(SQLite(),dbname=paste0(data_dir,"FPL-player-stats.db"))
+
+#dbListTables(db)
+df_stats <- dbReadTable(conn=db,name="player_stats")
+dbDisconnect(db)
+
+# Format columns
+df_stats$points_to_cost <- round(df_stats$points_to_cost,1)
+
+# Remove selected columns
+df_stats <- subset(df_stats, select=-c(index,team,element_type,value_season))
+
+
+```
+
+Forwards
+=====================================
+
+Row {data-height=650}
+-------------------------------------
+### Data
+
+```{r echo=FALSE}
+
+position_filter = "Forwards"
+df_filter <- df_stats %>% filter(position == position_filter)
+
+#data_table <- df_filter
+
+datatable(df_filter,extensions=c('Buttons','Scroller','FixedColumns'),
+  options=list(deferRender=TRUE,
+               headerCallback = DT::JS(
+    "function(thead) {",
+    "  $(thead).css('font-size', '70%');",
+    "}"
+  ),
+  fixedColumns = list(leftColumns=2),
+  #scrollY = 600,
+  scrollY="300px", scrollX="400px",
+  scroller = TRUE,
+  width = 400,
+  order = list(params$sort_col,'desc'),
+  dom = 'Bfrtip',
+  buttons = c('csv')),
+  class = 'cell-border stripe hover compact', rownames = FALSE) %>%
+formatStyle(colnames(df_filter),fontSize = '70%')
+
+
+```
+  
+Row {data-heigth=350} 
+-------------------------------------
+
+### Points Cloud
+``` {r echo = FALSE}
+
+position_filter = "Forwards"
+df_filter <- df_stats %>% filter(position == position_filter)
+#head(df_filter)
+
+word_names <- df_filter$second_name
+word_values <- df_filter$total_points
+
+minWordFreq <- 20
+wordcloud(word_names, word_values, min.freq = minWordFreq,random.order=FALSE, scale = c(4, 0.2),colors=brewer.pal(8, "Dark2"))
+
+````
+
+### Team Summaries
+``` {r echo = FALSE}
+position_filter = "Forwards"
+team_avge <- df_filter %>% 
+  group_by(team_name) %>%
+  summarize(`average points` = mean(`total_points`),
+                                    `average points to cost` = mean(`points_to_cost`))
+
+
+p1<- ggplot(team_avge, aes(`average points`, `average points to cost`, name = team_name, color = team_name)) + geom_point()
+#p1
+ggplotly(p1)
+
+````
+
+Midfielders
+=====================================
+
+Row {data-height=650}
+-------------------------------------
+### Data
+
+```{r echo=FALSE}
+
+position_filter = "Midfielders"
+df_filter <- df_stats %>% filter(position == position_filter)
+
+#data_table <- df_filter
+
+datatable(df_filter,extensions=c('Buttons','Scroller','FixedColumns'),
+  options=list(deferRender=TRUE,
+               headerCallback = DT::JS(
+    "function(thead) {",
+    "  $(thead).css('font-size', '70%');",
+    "}"
+  ),
+  fixedColumns = list(leftColumns=2),
+  #scrollY = 600,
+  scrollY="300px", scrollX="400px",
+  scroller = TRUE,
+  width = 400,
+  order = list(params$sort_col,'desc'),
+  dom = 'Bfrtip',
+  buttons = c('csv')),
+  class = 'cell-border stripe hover compact', rownames = FALSE) %>%
+formatStyle(colnames(df_filter),fontSize = '70%')
+
+
+```
+  
+Row {data-height=350}
+-------------------------------------
+
+### Points Cloud
+``` {r echo = FALSE}
+
+position_filter = "Midfielders"
+df_filter <- df_stats %>% filter(position == position_filter)
+#head(df_filter)
+
+word_names <- df_filter$second_name
+word_values <- df_filter$total_points
+
+minWordFreq <- 20
+wordcloud(word_names, word_values, min.freq = minWordFreq,random.order=FALSE, scale = c(4, 0.2),colors=brewer.pal(8, "Dark2"))
+
+````
+
+### Team Summaries
+``` {r echo = FALSE}
+position_filter = "Midfielders"
+team_avge <- df_filter %>% 
+  group_by(team_name) %>%
+  summarize(`average points` = mean(`total_points`),
+                                    `average points to cost` = mean(`points_to_cost`))
+
+
+p1<- ggplot(team_avge, aes(`average points`, `average points to cost`, name = team_name, color = team_name)) + geom_point()
+#p1
+ggplotly(p1)
+
+````
+
+Defenders
+=====================================
+
+Row {data-height=650}
+-------------------------------------
+### Data
+
+```{r echo=FALSE}
+
+position_filter = "Defenders"
+df_filter <- df_stats %>% filter(position == position_filter)
+
+#data_table <- df_filter
+
+datatable(df_filter,extensions=c('Buttons','Scroller','FixedColumns'),
+  options=list(deferRender=TRUE,
+               headerCallback = DT::JS(
+    "function(thead) {",
+    "  $(thead).css('font-size', '70%');",
+    "}"
+  ),
+  fixedColumns = list(leftColumns=2),
+  #scrollY = 600,
+  scrollY="300px", scrollX="400px",
+  scroller = TRUE,
+  width = 400,
+  order = list(params$sort_col,'desc'),
+  dom = 'Bfrtip',
+  buttons = c('csv')),
+  class = 'cell-border stripe hover compact', rownames = FALSE) %>%
+formatStyle(colnames(df_filter),fontSize = '70%')
+
+
+```
+  
+Row {data-height=350}
+-------------------------------------
+
+### Points Cloud
+``` {r echo = FALSE}
+
+position_filter = "Defenders"
+df_filter <- df_stats %>% filter(position == position_filter)
+#head(df_filter)
+
+word_names <- df_filter$second_name
+word_values <- df_filter$total_points
+
+minWordFreq <- 20
+wordcloud(word_names, word_values, min.freq = minWordFreq,random.order=FALSE, scale = c(4, 0.2),colors=brewer.pal(8, "Dark2"))
+
+````
+
+### Team Summaries
+``` {r echo = FALSE}
+position_filter = "Defenders"
+team_avge <- df_filter %>% 
+  group_by(team_name) %>%
+  summarize(`average points` = mean(`total_points`),
+                                    `average points to cost` = mean(`points_to_cost`))
+
+
+p1<- ggplot(team_avge, aes(`average points`, `average points to cost`, name = team_name, color = team_name)) + geom_point()
+#p1
+ggplotly(p1)
+
+````
+
+Goalkeepers
+=====================================
+
+Row {data-height=650}
+-------------------------------------
+### Data
+
+```{r echo=FALSE}
+
+position_filter = "Goalkeepers"
+df_filter <- df_stats %>% filter(position == position_filter)
+
+#data_table <- df_filter
+
+datatable(df_filter,extensions=c('Buttons','Scroller','FixedColumns'),
+  options=list(deferRender=TRUE,
+               headerCallback = DT::JS(
+    "function(thead) {",
+    "  $(thead).css('font-size', '70%');",
+    "}"
+  ),
+  fixedColumns = list(leftColumns=2),
+  #scrollY = 600,
+  scrollY="300px", scrollX="400px",
+  scroller = TRUE,
+  width = 400,
+  order = list(params$sort_col,'desc'),
+  dom = 'Bfrtip',
+  buttons = c('csv')),
+  class = 'cell-border stripe hover compact', rownames = FALSE) %>%
+formatStyle(colnames(df_filter),fontSize = '70%')
+
+
+```
+  
+Row {data-height=350}
+-------------------------------------
+
+### Points Cloud
+``` {r echo = FALSE}
+
+position_filter = "Goalkeepers"
+df_filter <- df_stats %>% filter(position == position_filter)
+#head(df_filter)
+
+word_names <- df_filter$second_name
+word_values <- df_filter$total_points
+
+minWordFreq <- 20
+wordcloud(word_names, word_values, min.freq = minWordFreq,random.order=FALSE, scale = c(4, 0.2),colors=brewer.pal(8, "Dark2"))
+
+````
+
+### Team Summaries
+``` {r echo = FALSE}
+position_filter = "Goalkeepers"
+team_avge <- df_filter %>% 
+  group_by(team_name) %>%
+  summarize(`average points` = mean(`total_points`),
+                                    `average points to cost` = mean(`points_to_cost`))
+
+
+p1<- ggplot(team_avge, aes(`average points`, `average points to cost`, name = team_name, color = team_name)) + geom_point()
+#p1
+ggplotly(p1)
+
+````
+
