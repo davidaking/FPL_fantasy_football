@@ -15,27 +15,6 @@ import requests
 import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
-import getpass
-
-current_user = getpass.getuser()
-
-dir_file = f'c:\\users\\{current_user}\\project-directories.csv'
-project_dir = pd.read_csv(dir_file)
-
-project_name = "FPL_fantasy_football"
-
-row_ind = project_dir['Project'] == project_name
-project_dir = project_dir[row_ind]
-
-for row in range(project_dir.shape[0]):
-    temp_row = project_dir.iloc[row,:]
-    sub_dir_name = temp_row['directory'].lower()
-    str_1 = f'{sub_dir_name}_dir = '
-    temp_lst = temp_row.tolist()
-    lst_join = '/'.join(temp_lst)
-    str_2 = f'"c:/users/{current_user}/{lst_join}/"'
-    my_code = str_1 + str_2
-    exec(my_code)
 
 
 url = 'https://fantasy.premierleague.com/api/bootstrap-static/'

@@ -19,34 +19,43 @@ library(knitr)
 library(tidyverse)
 library(RSQLite)
 library(flexdashboard)
-library(tidyverse)
 library(DT)
-library( wordcloud)
+library(wordcloud)
 library(ggplot2)
 library(plotly)
 
 
-# Import data
+
 # Set up directories
-current_user <- Sys.info()[["user"]]
-dir_file <- paste0("c:\\users\\",current_user,"\\project-directories.csv")
-project_dir = read.csv(dir_file)
 
-project_name <- "FPL_fantasy_football"
-row_ind <- project_dir$Project == project_name
-project_dir <- project_dir[row_ind,,drop=F]
+path <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(path)
+setwd('..')
+path <- getwd()
 
 
-for (i in 1:nrow(project_dir)){
+dir_list <- list.dirs(recursive = FALSE)
+dir_list <- gsub("./", "", dir_list)
+
+
+for (sub_dir_name in dir_list){
   
-  dir_str <- paste(project_dir[i,],collapse="/")
-  sub_dir_str <- tolower(project_dir[i,"directory"])
-  text_str <- paste0(sub_dir_str,"_dir <- ","'",paste0("c:/users/",current_user,"/",dir_str,"/","'"))  
-  eval(parse(text=text_str))
+  if (sub_dir_name != ".git"){
+    
+    
+    str_1 = paste0(sub_dir_name,"_dir <- ")
+    str_2 = paste0("'",path,"/",sub_dir_name,"/'")
+    my_code <- paste0(str_1,str_2)
+    eval(parse(text=my_code))
+    
+    
+  }
+  
   
   
 }
 
+# Import data
 
 db <- dbConnect(SQLite(),dbname=paste0(data_dir,"FPL-player-stats.db"))
 
