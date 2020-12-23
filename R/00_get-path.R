@@ -3,13 +3,11 @@
 # Script to define variables for directory names
 
 path <- dirname(rstudioapi::getActiveDocumentContext()$path)
-setwd(path)
-setwd('..')
-path <- getwd()
+path <- dirname(path)
 
 
-dir_list <- list.dirs(recursive = FALSE)
-dir_list <- gsub("./", "", dir_list)
+dir_list <- list.dirs(path,recursive = FALSE)
+dir_list <- gsub(paste0(path,"/"), "", dir_list)
 
 
 for (sub_dir_name in dir_list){
